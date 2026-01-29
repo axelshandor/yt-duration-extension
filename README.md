@@ -38,7 +38,7 @@ We take your privacy seriously. This extension:
 - Does not send information to external servers.
 - Works entirely locally on your browser.
 
-**Full Privacy Policy:** [View on GitHub Gist][(INSERISCI_QUI_IL_TUO_LINK_ALLA_GIST)](https://gist.github.com/axelshandor/a4168d62eb32f6e97bbae2cbabce0090)
+**Full Privacy Policy:** [View on GitHub Gist][(link)](https://gist.github.com/axelshandor/a4168d62eb32f6e97bbae2cbabce0090)
 
 ## 📄 License
 
