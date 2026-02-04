@@ -1,6 +1,6 @@
 # ⏱️ YouTube Playlist Duration
 
-![Version](https://img.shields.io/badge/version-1.2-brightgreen)
+![Version](https://img.shields.io/badge/version-1.3-brightgreen)
 ![Manifest](https://img.shields.io/badge/manifest-V3-red)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
