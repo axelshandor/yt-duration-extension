@@ -1,14 +1,8 @@
 {
   "manifest_version": 3,
   "name": "YouTube Playlist Duration",
-  "version": "1.2",
+  "version": "1.3",
   "description": "Calcola la durata totale di qualsiasi playlist su YouTube in pochi secondi.",
-  "icons": {
-    "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/playlist*"],
