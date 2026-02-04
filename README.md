@@ -16,7 +16,7 @@ A lightweight and powerful Google Chrome extension that calculates the total dur
 ## 🛠️ Installation
 
 ### From Chrome Web Store
-*(Link will be available after store approval)*
+https://chromewebstore.google.com/detail/youtube-playlist-duration/ojofedhidobnoojfhegmekkaaljmnjeh
 
 ### For Developers (Manual Install)
 1. Clone this repository or download the ZIP file.
