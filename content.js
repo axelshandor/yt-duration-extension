@@ -1,5 +1,30 @@
 // --- FUNZIONI DI CALCOLO ---
 
+function formatDuration(totalSeconds) {
+    const units = [
+        { label: 'y',  seconds: 365.25 * 24 * 3600 },
+        { label: 'mo', seconds: 30.44 * 24 * 3600 },
+        { label: 'w',  seconds: 7 * 24 * 3600 },
+        { label: 'd',  seconds: 24 * 3600 },
+        { label: 'h',  seconds: 3600 },
+        { label: 'm',  seconds: 60 },
+        { label: 's',  seconds: 1 },
+    ];
+
+    const parts = [];
+    let remaining = totalSeconds;
+
+    for (const unit of units) {
+        const value = Math.floor(remaining / unit.seconds);
+        if (value > 0) {
+            parts.push(`${value}${unit.label}`);
+            remaining -= value * unit.seconds;
+        }
+    }
+
+    return parts.length > 0 ? parts.join(' ') : '0s';
+}
+
 function parseTime(timeString) {
     const parts = timeString.trim().split(':').map(Number);
     let seconds = 0;
@@ -38,11 +63,7 @@ function updatePlaylistDuration() {
         }
     });
 
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    
-    const outputText = `${h}h ${m}m ${s}s`;
+    const outputText = formatDuration(totalSeconds);
 
     insertResultUnderStats(outputText, timeElements.length);
 }
@@ -168,6 +189,80 @@ function startAutoScroll() {
     }, 10000); 
 }
 
-// Eseguiamo il controllo ogni secondo. 
-// Dato che ora controlliamo l'URL, possiamo farlo girare spesso senza paura.
-setInterval(updatePlaylistDuration, 1000);
+// --- RILEVAMENTO NAVIGAZIONE ---
+
+// Intercettiamo pushState/replaceState (YouTube li usa per la navigazione SPA)
+(function() {
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    history.pushState = function() {
+        originalPushState.apply(this, arguments);
+        onUrlChange();
+    };
+    history.replaceState = function() {
+        originalReplaceState.apply(this, arguments);
+        onUrlChange();
+    };
+    window.addEventListener('popstate', onUrlChange);
+})();
+
+function onUrlChange() {
+    console.log('[YT Duration] URL changed:', window.location.href);
+    if (window.location.href.includes('list=')) {
+        waitForPlaylistAndUpdate();
+    } else {
+        const oldBox = document.getElementById('my-yt-duration-box');
+        if (oldBox) oldBox.remove();
+    }
+}
+
+// Aspetta che gli elementi della playlist appaiano nel DOM, poi aggiorna
+function waitForPlaylistAndUpdate() {
+    let attempts = 0;
+    const maxAttempts = 30; // 30 tentativi x 500ms = 15 secondi max
+
+    const tryUpdate = setInterval(() => {
+        attempts++;
+        const header = document.querySelector('ytd-playlist-header-renderer');
+        const times = document.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
+        
+        console.log(`[YT Duration] Attempt ${attempts}: header=${!!header}, times=${times.length}`);
+
+        if (header && times.length > 0) {
+            updatePlaylistDuration();
+            if (document.getElementById('my-yt-duration-box')) {
+                console.log('[YT Duration] Box inserted successfully');
+                clearInterval(tryUpdate);
+            }
+        }
+        if (attempts >= maxAttempts) {
+            console.log('[YT Duration] Gave up after max attempts');
+            clearInterval(tryUpdate);
+        }
+    }, 500);
+}
+
+// Fallback: controllo periodico ogni 2 secondi
+setInterval(updatePlaylistDuration, 2000);
+
+// Anche yt-navigate-finish come ulteriore fallback
+document.addEventListener('yt-navigate-finish', () => {
+    console.log('[YT Duration] yt-navigate-finish fired');
+    if (window.location.href.includes('list=')) {
+        waitForPlaylistAndUpdate();
+    }
+});
+
+// Esecuzione iniziale
+if (window.location.href.includes('list=')) {
+    waitForPlaylistAndUpdate();
+}
+
+// Messaggio dal service worker
+chrome.runtime.onMessage.addListener(function (request) {
+    if (request.message === 'playlistDetected') {
+        console.log('[YT Duration] Message from background: playlistDetected');
+        waitForPlaylistAndUpdate();
+    }
+});
